@@ -13,9 +13,9 @@ A single, solid, rounded XFCE panel bar in the Dracula palette, with live Alt+Ta
 
 ---
 
-## The two gotchas (read first)
+## The gotchas (read first)
 
-These two mistakes are what actually cause the "segmented panel" and "corners not rounded" problems most people hit.
+These mistakes are what actually cause the "segmented panel", "corners not rounded", and "panel won't reveal" problems most people hit.
 
 ### 1. `background-style=none` + a semi-transparent color = visible "sections"
 
@@ -35,6 +35,24 @@ The panel's own background and the *external* plugins (Whisker menu, system tray
 ```css
 .panel-1 { border-radius: 12px; }
 #XfcePanelWindowWrapper { border-radius: 0; }
+```
+
+### 3. An "always on top" window silently covers the trigger strip
+
+With autohide enabled, the panel reveals when the pointer enters a ~3px trigger strip at the screen edge. If any window is set to **"Always on Top"** (or is fullscreen) and sits at that edge, it stacks over the strip — so the pointer never actually enters the strip and the panel won't reveal, no matter how many times you hit the edge.
+
+**Diagnose** (move the pointer to the top edge first):
+
+```sh
+xdotool getmouselocation
+```
+
+If `WINDOW` is a regular app rather than the panel, that app is covering the strip.
+
+**Fix** — drop the covering window's always-on-top:
+
+```sh
+wmctrl -r "Window Title" -b remove,above
 ```
 
 ---
@@ -121,7 +139,7 @@ xfconf-query -c xfce4-panel -p /plugins/plugin-6/square-icons -n -t bool -s true
 - `background-style` values: `0` = none, `1` = color, `2` = image.
 - Panel window classes: `panel`, `xfce4-panel`, `background`, `panel-1`; wrapper windows are named `#XfcePanelWindowWrapper`.
 - On X11, CSS `margin` cannot float the panel (the panel sets its own position).
-- Free-floating the panel (`position` `p=0`) breaks autohide — the reveal strip follows the floating position instead of the screen edge.
+- Free-floating the panel (`position` `p=0`) breaks autohide — the reveal strip follows the floating position instead of the screen edge. The strip's position is hardcoded in xfce4-panel (`docked` → screen edge, `floating` → the panel's position), so a floating panel + edge-triggered reveal needs a source patch, not a config change.
 - Workspace margins (Settings → Workspaces → Margins) should stay `0` — a docked panel reserves its own space.
 
 ## Files
