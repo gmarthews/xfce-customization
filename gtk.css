@@ -1,0 +1,13 @@
+/* Rounded panel (panel window only) */
+.panel-1 {
+  border-radius: 12px;
+}
+
+/* External plugin windows: keep square so they fill the panel seamlessly */
+#XfcePanelWindowWrapper {
+  border-radius: 0;
+}
+
+.xfce4-panel button {
+  background-color: transparent;
+}
