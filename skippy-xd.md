@@ -62,6 +62,21 @@ skippy-xd            # one-shot overview (used by the hot corner)
 
 > **Note:** the "black ghost" was the dead giveaway that skippy was compositing over an un-painted root window.
 
+## Compositor / thumbnail fix (no "garbage" previews)
+
+**Symptom:** on the first run, every window thumbnail shows garbage/chaotic content and only corrects itself after you click the window.
+
+**Cause:** skippy-xd captures thumbnails with `XCompositeNameWindowPixmap`, which returns garbage right after a window is redirected — the real content only appears once the window repaints (a Damage event, e.g. when you click it).
+
+**Fix:** set `pseudoTrans = false`. The config's own comment documents `pseudoTrans = true` as the *"no standalone compositor"* mode; once a compositor (xfwm4's built-in, or picom) is running, `pseudoTrans` must be `false` so skippy reads the compositor's already-populated window pixmaps instead of its own stale redirect.
+
+```ini
+[system]
+pseudoTrans = false
+```
+
+(This matters after switching picom → xfwm4's compositor on Fedora, and equally on a fresh XFCE box with xfwm4 compositing enabled.)
+
 ## Config
 
 `~/.config/skippy-xd/skippy-xd.rc` (or `/etc/xdg/skippy-xd.rc` for the system default). This setup uses a **dimmed-wallpaper** background and **hides the dock**:
