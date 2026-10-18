@@ -1,148 +1,52 @@
-# XFCE Rounded Panel
+# XFCE Customization
 
-A single, solid, rounded XFCE panel bar in the Dracula palette, with live Alt+Tab window thumbnails.
+A complete XFCE desktop setup in the **Dracula** palette: a solid rounded panel, a left-edge Plank dock, hot-corner window overview (skippy-xd), a rofi launcher/window-switcher, and the performance fixes that keep it snappy.
 
-**Result:**
+Everything is documented as separate guides — pick the parts you want.
 
-- One solid rounded bar — no "sections" or gaps between plugins
-- Alt+Tab shows live window thumbnails
-- Workspace switcher as clean named buttons
-- Dracula palette (`#282a36` = `rgb(40,42,54)`)
-
-**Tested on:** Xfce 4.20 (xfce4-panel 4.20.7, xfwm4 4.20.0) on Fedora 44 and Xubuntu.
+**Tested on:** Xfce 4.20 (xfce4-panel 4.20.7, xfwm4 4.20.0) on Fedora 44 and Ubuntu 26.04 (Xubuntu).
 
 ---
 
-## The gotchas (read first)
+## Components
 
-These mistakes are what actually cause the "segmented panel", "corners not rounded", and "panel won't reveal" problems most people hit.
-
-### 1. `background-style=none` + a semi-transparent color = visible "sections"
-
-The panel's own background and the *external* plugins (Whisker menu, system tray, PulseAudio, power manager, notifications) are drawn by two different pieces of code. External plugins live in their own `GtkPlug` windows (named `#XfcePanelWindowWrapper`).
-
-- With `background-style=none`, each wrapper falls back to the theme's opaque background.
-- With a semi-transparent panel color (alpha < 1), the wrapper stacks that alpha again, so each plugin renders *darker* than the panel.
-
-**Fix:** `background-style=color` **and** a fully opaque color (alpha `1.0`). The wrapper then injects the same solid color on every widget, unifying the whole bar.
-
-### 2. Rounded corners on the wrong selector = square plugins + transparent notches
-
-`.xfce4-panel { border-radius: … }` matches **both** the panel window *and* every wrapper window (they all carry the `xfce4-panel` class). Rounding them carves transparent corners into each plugin.
-
-**Fix:** round **only** the panel window with its unique class `.panel-1`, and force wrappers square:
-
-```css
-.panel-1 { border-radius: 12px; }
-#XfcePanelWindowWrapper { border-radius: 0; }
-```
-
-### 3. An "always on top" window silently covers the trigger strip
-
-With autohide enabled, the panel reveals when the pointer enters a ~3px trigger strip at the screen edge. If any window is set to **"Always on Top"** (or is fullscreen) and sits at that edge, it stacks over the strip — so the pointer never actually enters the strip and the panel won't reveal, no matter how many times you hit the edge.
-
-**Diagnose** (move the pointer to the top edge first):
-
-```sh
-xdotool getmouselocation
-```
-
-If `WINDOW` is a regular app rather than the panel, that app is covering the strip.
-
-**Fix** — drop the covering window's always-on-top:
-
-```sh
-wmctrl -r "Window Title" -b remove,above
-```
-
----
-
-## Steps
-
-### 1. Enable the xfwm4 compositor (for Alt+Tab thumbnails)
-
-Live Alt+Tab thumbnails require xfwm4's own compositor — picom does not provide them.
-
-```sh
-xfconf-query -c xfwm4 -p /general/use_compositing -s true
-```
-
-If picom is running, disable it (kill it and disable its autostart):
-
-```sh
-pkill picom
-# set Hidden=true in ~/.config/autostart/picom.desktop
-```
-
-### 2. Panel background — solid color
-
-```sh
-xfconf-query -c xfce4-panel -p /panels/panel-1/background-style -s 1
-xfconf-query -c xfce4-panel -p /panels/panel-1/background-rgba \
-  -t double -t double -t double -t double \
-  -s 0.156860 -s 0.164710 -s 0.211760 -s 1.0
-```
-
-(`0.156860 0.164710 0.211760` = `rgb(40,42,54)` = Dracula `#282a36`, alpha `1.0`.)
-
-### 3. gtk.css — rounded corners
-
-Copy [`gtk.css`](gtk.css) into `~/.config/gtk-3.0/gtk.css` (or append its panel block). The essential lines:
-
-```css
-.panel-1 { border-radius: 12px; }
-#XfcePanelWindowWrapper { border-radius: 0; }
-.xfce4-panel button { background-color: transparent; }
-```
-
-Apply by logging out/in — `xfce4-panel -r` does not reliably reload CSS.
-
-### 4. Transparent separators at both ends
-
-The leftmost/rightmost plugins sit flush against the panel edge, and their opaque windows cover the rounded corners. Add a **transparent separator** at each end (Panel Preferences → Items → add Separator, set it transparent) so the rounding shows through.
-
-### 5. Plugin refinements (optional, for the clean look)
-
-Workspace switcher as buttons (not miniature):
-
-```sh
-xfconf-query -c xfce4-panel -p /plugins/plugin-4/miniature-view -n -t bool -s false
-```
-
-Window buttons — no labels, no grouping, no handles:
-
-```sh
-xfconf-query -c xfce4-panel -p /plugins/plugin-2/show-labels  -t bool -s false
-xfconf-query -c xfce4-panel -p /plugins/plugin-2/grouping      -t bool -s false
-xfconf-query -c xfce4-panel -p /plugins/plugin-2/show-handle   -t bool -s false
-```
-
-Clock — padding via leading/trailing spaces in the format:
-
-```sh
-xfconf-query -c xfce4-panel -p /plugins/plugin-11/digital-format -s " %a %d %b, %R "
-```
-
-Notification area — square icons:
-
-```sh
-xfconf-query -c xfce4-panel -p /plugins/plugin-6/square-icons -n -t bool -s true
-```
-
-> **Note:** plugin IDs (`plugin-2`, `plugin-4`, …) are per-install. Confirm yours with:
-> `xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids`
-
----
-
-## Notes / reference
-
-- `background-style` values: `0` = none, `1` = color, `2` = image.
-- Panel window classes: `panel`, `xfce4-panel`, `background`, `panel-1`; wrapper windows are named `#XfcePanelWindowWrapper`.
-- On X11, CSS `margin` cannot float the panel (the panel sets its own position).
-- Free-floating the panel (`position` `p=0`) breaks autohide — the reveal strip follows the floating position instead of the screen edge. The strip's position is hardcoded in xfce4-panel (`docked` → screen edge, `floating` → the panel's position), so a floating panel + edge-triggered reveal needs a source patch, not a config change.
-- Workspace margins (Settings → Workspaces → Margins) should stay `0` — a docked panel reserves its own space.
+| Guide | What it does |
+|-------|--------------|
+| [panel.md](panel.md) | Rounded solid panel bar + Dracula Whisker menu / workspace switcher + Alt+Tab thumbnails |
+| [plank.md](plank.md) | Left-edge dock, curated launchers, shadow-off, WM_CLASS matching gotcha |
+| [hotcorner.md](hotcorner.md) | Corner-trigger plugin (built from source + patches) driving skippy-xd and rofi |
+| [skippy-xd.md](skippy-xd.md) | Window overview (Exposé) + the wallpaper `_XROOTPMAP_ID` fix |
+| [rofi.md](rofi.md) | Launcher + window switcher, Dracula theme, Super-key binding |
+| [performance.md](performance.md) | CPU-leak fix, xfdashboard removal, GNOME indexer masking |
+| [ubuntu2-copy.md](ubuntu2-copy.md) | Replicate the whole setup onto another XFCE machine over SSH |
+| [media.md](media.md) | smplayer (mpv) as the default video player |
 
 ## Files
 
-- [`gtk.css`](gtk.css) — the panel CSS block
-- [`setup.sh`](setup.sh) — all xfconf commands in one script
+- [`gtk.css`](gtk.css) — the full panel + Dracula CSS block (`~/.config/gtk-3.0/gtk.css`)
+- [`setup.sh`](setup.sh) — the panel xfconf commands in one script
+
+## Quick start
+
+```sh
+# 1. Panel (see panel.md)
+bash setup.sh
+cp gtk.css ~/.config/gtk-3.0/gtk.css
+
+# 2. Dock
+sudo dnf install plank        # or: sudo apt install plank
+
+# 3. Launcher + overview + corners (see hotcorner.md, skippy-xd.md, rofi.md)
+sudo dnf install rofi
+# …build + install the hot-corner plugin and skippy-xd from source…
+```
+
+Log out/in after the CSS change.
+
+---
+
+## Credits / origin
+
+- **Hot-corner plugin** — `christopherkobayashi/xfce4-hotcorner-plugin`, with local patches (radius detection, skippy-xd action, CPU + crash fixes).
+- **skippy-xd** — `richardgv/skippy-xd`.
+- Palette: [Dracula](https://draculatheme.com) (`#282a36` / `#bd93f9` / `#f8f8f2`).

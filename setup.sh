@@ -1,5 +1,5 @@
 #!/bin/sh
-# XFCE rounded panel — apply panel config (see README.md)
+# XFCE rounded panel — apply panel config (see panel.md)
 
 set -e
 

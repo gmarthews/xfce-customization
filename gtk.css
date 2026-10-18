@@ -1,4 +1,9 @@
-/* Rounded panel (panel window only) */
+/* ============================================================
+   XFCE panel + Dracula theme
+   Copy to ~/.config/gtk-3.0/gtk.css  (log out/in to apply)
+   ============================================================ */
+
+/* Floating rounded panel (round ONLY the panel window) */
 .panel-1 {
   border-radius: 12px;
 }
@@ -8,6 +13,97 @@
   border-radius: 0;
 }
 
-.xfce4-panel button {
+/* Transparent panel button + menu surfaces so the Dracula color shows through */
+.xfce4-panel button { background-color: transparent; }
+window.background menu {
   background-color: transparent;
+}
+window.background .view {
+  background-color: transparent;
+}
+window.background scrolledwindow {
+  background-color: transparent;
+}
+window.background treeview {
+  background-color: transparent;
+}
+window.background flowbox {
+  background-color: transparent;
+}
+window.background .list {
+  background-color: transparent;
+}
+
+/* Nemo visible selection highlight */
+.nemo-window GtkIconView.view.cell:selected,
+.nemo-window GtkIconView.view.cell:selected:focus,
+.nemo-window .nemo-canvas-item:selected,
+.nemo-window .view:selected,
+.nemo-window .view:selected:focus {
+  background-color: #478B8D;
+  color: #f8f8f2;
+  border-color: #478B8D;
+}
+
+/* ============================================================
+   Dracula theme — Whisker menu + Workspace switcher
+   Accent: #bd93f9 (purple) | bg: #282a36 | fg: #f8f8f2
+   ============================================================ */
+
+/* ---------- Workspace switcher (buttons mode) ---------- */
+.xfce4-panel widget grid button.flat.toggle {
+  background-color: rgba(255, 255, 255, 0.05);
+  background-image: none;
+  border: 0;
+  border-radius: 6px;
+  margin: 2px;
+  padding: 2px 8px;
+  color: #f8f8f2;
+}
+.xfce4-panel widget grid button.flat.toggle:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+.xfce4-panel widget grid button.flat.toggle:checked {
+  background-color: rgba(189, 147, 249, 0.90);
+  color: #282a36;
+  font-weight: bold;
+}
+
+/* ---------- Whisker menu ---------- */
+#whiskermenu-window {
+  background-color: rgba(40, 42, 54, 0.97);
+  border: 1px solid #44475a;
+  border-radius: 10px;
+  padding: 6px;
+}
+
+#whiskermenu-window entry {
+  background-color: #44475a;
+  background-image: none;
+  color: #f8f8f2;
+  caret-color: #f8f8f2;
+  border: 1px solid #6272a4;
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+
+#whiskermenu-window button {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 6px;
+  color: #f8f8f2;
+  margin: 2px;
+}
+
+#whiskermenu-window button:hover {
+  background-color: rgba(255, 255, 255, 0.10);
+}
+
+#whiskermenu-window button:checked,
+#whiskermenu-window treeview:selected,
+#whiskermenu-window treeview:hover,
+#whiskermenu-window treeview:active {
+  background-color: rgba(189, 147, 249, 0.35);
+  color: #f8f8f2;
 }
